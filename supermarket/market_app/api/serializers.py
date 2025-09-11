@@ -1,10 +1,20 @@
 from rest_framework import serializers
-from market_app.models import Market
+from market_app.models import Market, Seller
+
+def validate_no_x(value):
+        errors = []
+        if 'X' in value:
+            errors.append('no X in location')
+        if 'Y' in value:
+             errors.append('no Y in location')
+        if errors:
+             raise serializers.ValidationError(errors)
+        return value
 
 class MarketSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(max_length=255)
-    location = serializers.CharField(max_length=255)
+    location = serializers.CharField(max_length=255, validators=[validate_no_x])
     description = serializers.CharField()
     net_worth = serializers.DecimalField(max_digits=100, decimal_places=2)
 
@@ -19,9 +29,33 @@ class MarketSerializer(serializers.Serializer):
         instance.save()
         return instance
     
+class SellerDetailSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
+    name = serializers.CharField(max_length=255)
+    contact_info = serializers.CharField()
+    markets = MarketSerializer(many=True, read_only=True)
+
+class SellerCreateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
+    contact_info = serializers.CharField()
+    markets = serializers.ListField(child=serializers.IntegerField(), write_only=True)
+    
+    def validate_markets(self, value):
+         markets = Market.objects.filter(id__in=value)
+         if len(markets) != len(value):
+              serializer = MarketSerializer(markets, many=True)
+              raise serializers.ValidationError({"message": "passt halt nicht mit den ids"})
+         return value
+    
+    def create(self, validated_data):
+         market_ids=validated_data.pop('markets')
+         seller = Seller.objects.create(**validated_data)
+         markets = Market.objects.filter(id__in=market_ids)
+         seller.markets.set(markets)
+         return seller
+
 # {
-#     "name": "Tommy",
-#     "location": "Nürnberg",
-#     "description": "Ein moderner Markt mit einer Vielzahl an Produkten.",
-#     "net_worth": "1500332"
+#      "name": "Seller1",
+#      "contact_info": "Seller1@example.com",
+#      "markets": [2]
 # }
