@@ -33,19 +33,26 @@ class SellerDetailSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(max_length=255)
     contact_info = serializers.CharField()
-    # markets = MarketSerializer(many=True, read_only=True)
-    markets = serializers.StringRelatedField(many=True)
+    markets = MarketSerializer(many=True, read_only=True)
+    # markets = serializers.StringRelatedField(many=True)
 
 class SellerCreateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255)
     contact_info = serializers.CharField()
     markets = serializers.ListField(child=serializers.IntegerField(), write_only=True)
-    
+
     def validate_markets(self, value):
          markets = Market.objects.filter(id__in=value)
          if len(markets) != len(value):
-              raise serializers.ValidationError({"message": "passt halt nicht mit den ids"})
+              serializer = MarketSerializer(markets, many=True)
+              raise serializers.ValidationError(serializer.data)
          return value
+
+    # def validate_markets(self, value):
+    #      markets = Market.objects.filter(id__in=value)
+    #      if len(markets) != len(value):
+    #           raise serializers.ValidationError({"message": "passt halt nicht mit den ids"})
+    #      return value
     
     def create(self, validated_data):
          market_ids=validated_data.pop('markets')
@@ -57,5 +64,5 @@ class SellerCreateSerializer(serializers.Serializer):
 # {
 #      "name": "Seller1",
 #      "contact_info": "Seller1@example.com",
-#      "markets": [2]
+#      "markets": [1]
 # }
