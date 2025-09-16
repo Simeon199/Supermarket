@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from market_app.models import Market, Seller
+from market_app.models import Market, Seller, Product
 
 def validate_no_x(value):
         errors = []
@@ -41,18 +41,18 @@ class SellerCreateSerializer(serializers.Serializer):
     contact_info = serializers.CharField()
     markets = serializers.ListField(child=serializers.IntegerField(), write_only=True)
 
-    def validate_markets(self, value):
-         markets = Market.objects.filter(id__in=value)
-         if len(markets) != len(value):
-              serializer = MarketSerializer(markets, many=True)
-              raise serializers.ValidationError(serializer.data)
-         return value
-
     # def validate_markets(self, value):
     #      markets = Market.objects.filter(id__in=value)
     #      if len(markets) != len(value):
-    #           raise serializers.ValidationError({"message": "passt halt nicht mit den ids"})
+    #           serializer = MarketSerializer(markets, many=True)
+    #           raise serializers.ValidationError(serializer.data)
     #      return value
+
+    def validate_markets(self, value):
+         markets = Market.objects.filter(id__in=value)
+         if len(markets) != len(value):
+              raise serializers.ValidationError({"message": "passt halt nicht mit den ids"})
+         return value
     
     def create(self, validated_data):
          market_ids=validated_data.pop('markets')
@@ -60,6 +60,14 @@ class SellerCreateSerializer(serializers.Serializer):
          markets = Market.objects.filter(id__in=market_ids)
          seller.markets.set(markets)
          return seller
+    
+class ProductSerializer(serializers.Serializer):
+     id = serializers.IntegerField(read_only=True)
+     name = serializers.CharField(max_length=255)
+     description = serializers.CharField(max_length=255)
+     price = serializers.DecimalField(max_digits=100, decimal_places=2)
+     markets = serializers.ListField(child=serializers.IntegerField(), write_only=True)
+     sellers = serializers.ListField(child=serializers.IntegerField(), write_only=True)
 
 # {
 #      "name": "Seller1",
