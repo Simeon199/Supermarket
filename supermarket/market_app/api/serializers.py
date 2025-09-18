@@ -66,12 +66,10 @@ class ProductSerializer(serializers.Serializer):
      name = serializers.CharField(max_length=255)
      description = serializers.CharField()
      price = serializers.DecimalField(max_digits=100, decimal_places=2)
-     market = serializers.IntegerField()
-     seller = serializers.IntegerField()
-
-     # markets = serializers.ListField(child=serializers.IntegerField(), write_only=True)
-     # sellers = serializers.ListField(child=serializers.IntegerField(), write_only=True)
-
+     market = serializers.PrimaryKeyRelatedField(queryset=Market.objects.all())
+     seller = serializers.PrimaryKeyRelatedField(queryset=Seller.objects.all())
+     # market = serializers.IntegerField()
+     # seller = serializers.IntegerField()
 
      def create(self, validated_data):
           # Fetch related objects using the provided IDs
@@ -93,8 +91,20 @@ class ProductSerializer(serializers.Serializer):
           instance.save()
           return instance
      
+# Seller object for test purposes
+
 # {
 #      "name": "Seller1",
 #      "contact_info": "Seller1@example.com",
 #      "markets": [1]
+# }
+
+# Product objects for test purposes
+
+# {
+#   "name": "Apple Juice",
+#   "description": "Freshly squeezed apple juice.",
+#   "price": "3.99",
+#   "market": 1,
+#   "seller": 1
 # }
