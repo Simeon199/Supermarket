@@ -1,14 +1,14 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import MarketSerializer, SellerDetailSerializer, SellerCreateSerializer, ProductSerializer
+from .serializers import MarketSerializer, ProductSerializer, SellerSerializer
 from market_app.models import Market, Seller, Product
 
 @api_view(['GET', 'POST'])
 def markets_view(request):
     if request.method == 'GET':
         markets = Market.objects.all()
-        serializer = MarketSerializer(markets, many=True)
+        serializer = MarketSerializer(markets, many=True, context={'request': request})
         return Response(serializer.data)
 
     if request.method == 'POST':
@@ -45,17 +45,24 @@ def market_single_view(request, pk):
 def sellers_view(request):
     if request.method == 'GET':
         sellers = Seller.objects.all()
-        serializer = SellerDetailSerializer(sellers, many=True)
+        serializer = SellerSerializer(sellers, many=True)
         return Response(serializer.data)
 
     if request.method == 'POST':
-        serializer = SellerCreateSerializer(data=request.data)
+        serializer = SellerSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
-        
+
+@api_view()
+def sellers_single_view(request, pk):
+    if request.method == 'GET':
+        seller = Seller.objects.get(pk=pk)
+        serializer = SellerSerializer(seller, context={'request': request})
+        return Response(serializer.data)
+
 @api_view(['GET', 'POST'])
 def products_view(request):
     if request.method == 'GET':
@@ -89,16 +96,8 @@ def product_detail_view(request, pk):
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
         
-# @api_view(['GET', 'POST'])
-# def products_view(request):
-#     if request.method == 'GET':
-#         products = Product.objects.all()
-#         serializer = ProductDetailSerializer(products, many=True)
-#         return Response(serializer.data)
-#     if request.method == 'POST':
-#         serializer = ProductCreateSerializer(data=request.data)
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         else:
-#             return Response(serializer.errors)
+# {
+#     "market_ids": [],
+#     "name": "Seller Modelserializer",
+#     "contact_info": "Modelserializer@example.com"
+# }
