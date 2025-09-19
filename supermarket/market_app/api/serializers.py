@@ -1,17 +1,18 @@
 from rest_framework import serializers
 from market_app.models import Market, Seller, Product
 
-def validate_no_x(value):
-        errors = []
-        if 'X' in value:
-            errors.append('no X in location')
-        if 'Y' in value:
-             errors.append('no Y in location')
-        if errors:
-             raise serializers.ValidationError(errors)
-        return value
+# def validate_no_x(value):
+#         errors = []
+#         if 'X' in value:
+#             errors.append('no X in location')
+#         if 'Y' in value:
+#              errors.append('no Y in location')
+#         if errors:
+#              raise serializers.ValidationError(errors)
+#         return value
 
-class MarketSerializer(serializers.ModelSerializer):
+class MarketSerializer(serializers.HyperlinkedModelSerializer): # ModelSerializer
+     
      sellers = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='seller_single')
      
      class Meta:
@@ -28,6 +29,29 @@ class MarketSerializer(serializers.ModelSerializer):
              raise serializers.ValidationError(errors)
         return value
      
+class MarketHyperLinkedSerializer(MarketSerializer, serializers.HyperlinkedModelSerializer): # ModelSerializer
+
+         def __init__(self, *args, **kwargs):
+          # Don't pass the 'fields' arg up to the superclass
+          fields = kwargs.pop('fields', None)
+
+          # Instantiate the superclass normally
+          super().__init__(*args, **kwargs)
+
+          if fields is not None:
+               # Drop any fields that are not specified in the `fields` argument.
+               allowed = set(fields)
+               existing = set(self.fields)
+               for field_name in existing - allowed:
+                    self.fields.pop(field_name)
+     
+     # sellers = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='seller_single')
+     
+class Meta:
+     model = Market
+     fields=['id', 'url', 'name', 'location', 'description', 'net_worth']
+         
+
 class SellerSerializer(serializers.ModelSerializer):
      markets = MarketSerializer(many=True, read_only=True)
      market_ids = serializers.PrimaryKeyRelatedField(
