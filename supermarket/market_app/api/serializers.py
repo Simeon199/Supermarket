@@ -1,16 +1,6 @@
 from rest_framework import serializers
 from market_app.models import Market, Seller, Product
 
-# def validate_no_x(value):
-#         errors = []
-#         if 'X' in value:
-#             errors.append('no X in location')
-#         if 'Y' in value:
-#              errors.append('no Y in location')
-#         if errors:
-#              raise serializers.ValidationError(errors)
-#         return value
-
 class MarketSerializer(serializers.HyperlinkedModelSerializer): # ModelSerializer
      
      sellers = serializers.HyperlinkedRelatedField(many=True, read_only=True, view_name='seller_single')
@@ -32,7 +22,10 @@ class MarketSerializer(serializers.HyperlinkedModelSerializer): # ModelSerialize
 class MarketHyperLinkedSerializer(MarketSerializer, serializers.HyperlinkedModelSerializer): # ModelSerializer
 
          def __init__(self, *args, **kwargs):
-          # Don't pass the 'fields' arg up to the superclass
+
+          # This line tries to remove the key 'fields' from kwargs and assign its value to fields.
+          # If 'fields' is not present in kwargs, it assigns None to fields (instead of raising an error).
+
           fields = kwargs.pop('fields', None)
 
           # Instantiate the superclass normally
@@ -42,6 +35,8 @@ class MarketHyperLinkedSerializer(MarketSerializer, serializers.HyperlinkedModel
                # Drop any fields that are not specified in the `fields` argument.
                allowed = set(fields)
                existing = set(self.fields)
+               # for field_name in existing - allowed:
+               # Finds all fields that exist on the serializer but are not in the allowed set (i.e., fields the caller did NOT request).
                for field_name in existing - allowed:
                     self.fields.pop(field_name)
      
@@ -79,15 +74,15 @@ class ProductSerializer(serializers.Serializer):
      seller = serializers.PrimaryKeyRelatedField(queryset=Seller.objects.all())
 
      def create(self, validated_data):
-          # Fetch related objects using the provided IDs
-          market = Market.objects.get(pk=validated_data['market'])
-          seller = Seller.objects.get(pk=validated_data['seller'])
-          # Remove IDs from validated_data and add actual objects
-          validated_data['market'] = market
-          validated_data['seller'] = seller
+          print(f"validated data: {validated_data['market']}")
+          # market = Market.objects.get(pk=validated_data['market'])
+          # seller = Seller.objects.get(pk=validated_data['seller'])
+          # validated_data['market'] = market
+          # validated_data['seller'] = seller
           return Product.objects.create(**validated_data)
      
      def update(self, instance, validated_data):
+          # print(f"instance type: {instance}")
           instance.name = validated_data.get('name', instance.name)
           instance.description = validated_data.get('description', instance.description)
           instance.price = validated_data.get('price', instance.price)
@@ -109,9 +104,9 @@ class ProductSerializer(serializers.Serializer):
 # Product objects for test purposes
 
 # {
-#   "name": "Apple Juice",
-#   "description": "Freshly squeezed apple juice.",
-#   "price": "3.99",
+#   "name": "Orange Juice",
+#   "description": "Freshly squeezed orange juice.",
+#   "price": "4.99",
 #   "market": 1,
 #   "seller": 1
 # }
