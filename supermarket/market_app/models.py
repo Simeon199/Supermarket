@@ -29,10 +29,3 @@ class Product(models.Model):
     def __str__(self):
         return f"{self.name} ({self.price})"
     
-# {
-#   "name": "Orange Juice",
-#   "description": "Freshly squeezed orange juice.",
-#   "price": "4.99",
-#   "market": 1,
-#   "seller": 1
-# }

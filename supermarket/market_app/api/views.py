@@ -1,14 +1,15 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .serializers import MarketSerializer, ProductSerializer, SellerSerializer, MarketHyperLinkedSerializer
+from .serializers import MarketSerializer, ProductSerializer, SellerSerializer
 from market_app.models import Market, Seller, Product
 
 @api_view(['GET', 'POST'])
 def markets_view(request):
     if request.method == 'GET':
         markets = Market.objects.all()
-        serializer = MarketHyperLinkedSerializer(markets, many=True, context={'request': request}, fields=('id', 'name', 'net_worth')) # Ehemals: MarketSerializer
+        # serializer = MarketHyperLinkedSerializer(markets, many=True, context={'request': request}, fields=('id', 'name', 'net_worth')) 
+        serializer = MarketSerializer(markets, many=True, context={'request': request}, fields=('id', 'name', 'net_worth'))
         return Response(serializer.data)
 
     if request.method == 'POST':
@@ -45,7 +46,7 @@ def market_single_view(request, pk):
 def sellers_view(request):
     if request.method == 'GET':
         sellers = Seller.objects.all()
-        serializer = SellerSerializer(sellers, many=True)
+        serializer = SellerSerializer(sellers, many=True, context={'request': request})
         return Response(serializer.data)
 
     if request.method == 'POST':
@@ -96,8 +97,3 @@ def product_detail_view(request, pk):
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
         
-# {
-#     "market_ids": [],
-#     "name": "Seller Modelserializer",
-#     "contact_info": "Modelserializer@example.com"
-# }
