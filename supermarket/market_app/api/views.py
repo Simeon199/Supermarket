@@ -56,12 +56,28 @@ def sellers_view(request):
         else:
             return Response(serializer.errors)
 
-@api_view()
+@api_view(['GET', 'PUT', 'DELETE'])
 def sellers_single_view(request, pk):
-    if request.method == 'GET':
+    try:
         seller = Seller.objects.get(pk=pk)
-        serializer = SellerSerializer(seller, context={'request': request})
+    except Seller.DoesNotExist:
+        return Response({'error': 'Seller not found'}, status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'GET':
+        serializer = SellerSerializer(seller, data=request.data, partial=True)
         return Response(serializer.data)
+    if request.method == 'PUT':
+        serializer = SellerSerializer(seller, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors)
+    if request.method == 'DELETE':
+        seller.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    # if request.method == 'GET':
+    #     seller = Seller.objects.get(pk=pk)
+    #     serializer = SellerSerializer(seller, context={'request': request})
+    #     return Response(serializer.data)
 
 @api_view(['GET', 'POST'])
 def products_view(request):
@@ -86,12 +102,18 @@ def product_detail_view(request, pk):
     if request.method == 'GET':
         serializer = ProductSerializer(product)
         return Response(serializer.data)
-    if request.method == 'PUT':
-        serializer = ProductSerializer(product, data=request.data)
+    if request.method in ['PUT', 'PATCH']:
+        serializer = ProductSerializer(product, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # if request.method == 'PUT':
+    #     serializer = ProductSerializer(product, data=request.data)
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data)
+    #     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     if request.method == 'DELETE':
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
