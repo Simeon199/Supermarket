@@ -8,7 +8,6 @@ from market_app.models import Market, Seller, Product
 def markets_view(request):
     if request.method == 'GET':
         markets = Market.objects.all()
-        # serializer = MarketHyperLinkedSerializer(markets, many=True, context={'request': request}, fields=('id', 'name', 'net_worth')) 
         serializer = MarketSerializer(markets, many=True, context={'request': request}, fields=('id', 'name', 'net_worth'))
         return Response(serializer.data)
 
@@ -29,7 +28,7 @@ def market_single_view(request, pk):
     
     if request.method == 'PUT':
         market = Market.objects.get(pk=pk)
-        serializer = MarketSerializer(market, data=request.data, partial=True)
+        serializer = MarketSerializer(market, context={'request': request}, data=request.data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
@@ -96,4 +95,3 @@ def product_detail_view(request, pk):
     if request.method == 'DELETE':
         product.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-        
