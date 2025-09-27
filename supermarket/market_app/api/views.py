@@ -1,8 +1,4 @@
-# from rest_framework.decorators import api_view
-# from rest_framework.response import Response
-# from rest_framework import status
 from .serializers import MarketSerializer, ProductSerializer, SellerSerializer
-# from django.shortcuts import get_object_or_404
 from market_app.models import Market, Seller, Product
 from rest_framework import mixins
 from rest_framework import generics
@@ -66,27 +62,10 @@ class ProductDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'pk'
 
+class SellerOfMarketList(generics.ListAPIView):
+    serializer_class = SellerSerializer
 
-# @api_view(['GET', 'PUT', 'PATCH', 'DELETE'])
-# def product_detail_view(request, pk):
-#     product = get_object_or_404(Product, pk=pk)
-#     if request.method == 'GET':
-#         serializer = ProductSerializer(
-#             product, 
-#             context={'request': request}
-#         )
-#         return Response(serializer.data)
-#     if request.method in ['PUT', 'PATCH']:
-#         serializer = ProductSerializer(
-#             product, 
-#             context={'request': request}, 
-#             data=request.data, 
-#             partial=True
-#         )
-#         if serializer.is_valid():
-#             serializer.save()
-#             return Response(serializer.data)
-#         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-#     if request.method == 'DELETE':
-#         product.delete()
-#         return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_queryset(self):
+        pk = self.kwargs.get('pk')
+        market = Market.objects.get(pk=pk)
+        return market.sellers.all()
