@@ -56,7 +56,7 @@ class SellerSerializer(DynamicFieldsHyperlinkedModelSerializer):
                "market_count", 
                "markets", 
                "contact_info"
-          ] # "market_ids"
+          ]
 
 class ProductSerializer(DynamicFieldsHyperlinkedModelSerializer):
      url = serializers.HyperlinkedIdentityField(view_name='product-detail')
@@ -77,3 +77,12 @@ class ProductSerializer(DynamicFieldsHyperlinkedModelSerializer):
                "market", 
                "seller"
           ]
+
+class SellerListSerializer(SellerSerializer):
+     class Meta:
+          model = Seller
+          fields = [
+               "id",
+               "name",
+               "market_count"
+          ] # "conctact_info"

@@ -1,4 +1,4 @@
-from .serializers import MarketSerializer, ProductSerializer, SellerSerializer
+from .serializers import MarketSerializer, ProductSerializer, SellerSerializer, SellerListSerializer
 from market_app.models import Market, Seller, Product
 from rest_framework import mixins
 from rest_framework import generics
@@ -63,7 +63,7 @@ class ProductDetailView(RetrieveUpdateDestroyAPIView):
     lookup_field = 'pk'
 
 class SellerOfMarketList(generics.ListAPIView):
-    serializer_class = SellerSerializer
+    serializer_class = SellerListSerializer
 
     def get_queryset(self):
         pk = self.kwargs.get('pk')
