@@ -1,24 +1,22 @@
 from rest_framework import serializers
 from market_app.models import Market, Seller, Product
 
-# Reusable base: allows passing `fields=['id', 'name']` at runtime to limit output
-
 class DynamicFieldsHyperlinkedModelSerializer(serializers.HyperlinkedModelSerializer):
      def __init__(self, *args, **kwargs):
           fields = kwargs.pop('fields', None) 
           super().__init__(*args, **kwargs)
           if fields is not None:
-               allowed = set(fields) # fields = ('id', 'name', 'net_worth')
-               existing = set(self.fields) # self.fields = ('id', 'name', 'location', 'description', 'net_worth')
+               allowed = set(fields)
+               existing = set(self.fields) 
                for field_name in existing - allowed:
                     self.fields.pop(field_name)
 
-class MarketSerializer(DynamicFieldsHyperlinkedModelSerializer): # ModelSerializer
+class MarketSerializer(DynamicFieldsHyperlinkedModelSerializer): 
      url = serializers.HyperlinkedIdentityField(view_name='market-detail')
      sellers = serializers.HyperlinkedRelatedField(
           many=True, 
           read_only=True,
-          view_name='seller-single'
+          view_name='seller-detail'
      )
      
      class Meta:
@@ -36,7 +34,7 @@ class MarketSerializer(DynamicFieldsHyperlinkedModelSerializer): # ModelSerializ
         return value 
          
 class SellerSerializer(DynamicFieldsHyperlinkedModelSerializer):
-     url = serializers.HyperlinkedIdentityField(view_name='seller-single') # seller-detail
+     url = serializers.HyperlinkedIdentityField(view_name='seller-detail')
      markets = serializers.HyperlinkedRelatedField(
           many=True,
           read_only=True,
@@ -64,7 +62,8 @@ class ProductSerializer(DynamicFieldsHyperlinkedModelSerializer):
           queryset=Market.objects.all(), view_name='market-detail'
      )
      seller = serializers.HyperlinkedRelatedField(
-          queryset=Seller.objects.all(), view_name='seller-single'
+          queryset=Seller.objects.all(), 
+          view_name='seller-detail'
      )
      class Meta:
           model = Product
@@ -85,4 +84,4 @@ class SellerListSerializer(SellerSerializer):
                "id",
                "name",
                "market_count"
-          ] # "conctact_info"
+          ] 

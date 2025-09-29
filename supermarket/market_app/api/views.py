@@ -1,51 +1,34 @@
 from .serializers import MarketSerializer, ProductSerializer, SellerSerializer, SellerListSerializer
 from market_app.models import Market, Seller, Product
-from rest_framework import mixins
+from rest_framework import mixins, generics
 from rest_framework import generics
+from rest_framework.response import Response
 from rest_framework.generics import RetrieveUpdateDestroyAPIView
+from django.shortcuts import get_object_or_404
+from rest_framework import viewsets
 
-class MarketsView(
+class ListRetrieveViewSet(
     mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    generics.GenericAPIView
-    ):
-    
-    queryset = Market.objects.all()
-    serializer_class = MarketSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-    
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-    
-class SellersView(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    generics.GenericAPIView
+    mixins.RetrieveModelMixin,
+    viewsets.GenericViewSet
 ):
+    pass
+
+class ProductViewSet(ListRetrieveViewSet):
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    
+class SellerViewSet(viewsets.ModelViewSet):
     queryset = Seller.objects.all()
     serializer_class = SellerSerializer
 
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-    
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
-    
-class ProductsView(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    generics.GenericAPIView
-):
+class MarketViewSet(viewsets.ModelViewSet):
+    queryset = Market.objects.all()
+    serializer_class = MarketSerializer
+
+class ProductViewSet(viewsets.ModelViewSet):
     queryset = Product.objects.all()
     serializer_class = ProductSerializer
-
-    def get(self, request, *args, **kwargs):
-        return self.list(request, *args, **kwargs)
-    
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
     
 class MarketDetailView(RetrieveUpdateDestroyAPIView):
     queryset = Market.objects.all()
@@ -62,10 +45,28 @@ class ProductDetailView(RetrieveUpdateDestroyAPIView):
     serializer_class = ProductSerializer
     lookup_field = 'pk'
 
-class SellerOfMarketList(generics.ListAPIView):
-    serializer_class = SellerListSerializer
+class SellerOfMarketList(
+    mixins.ListModelMixin,
+    mixins.CreateModelMixin,
+    generics.GenericAPIView
+): 
+    serializer_class = SellerSerializer
 
     def get_queryset(self):
-        pk = self.kwargs.get('pk')
-        market = Market.objects.get(pk=pk)
-        return market.sellers.all()
+        market_id = self.kwargs.get('market_id')
+        return Seller.objects.filter(markets__id=market_id)
+    
+    def get(self, request, *args, **kwargs):
+        return self.list(request, *args, **kwargs)
+    
+    def post(self, request, *args, **kwargs):
+        market_id = self.kwargs.get('market_id')
+        if market_id:
+            data = request.data.copy()
+            data['market_ids'] = [market_id]
+            serializer = self.get_serializer(data=data)
+        else:
+            serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
